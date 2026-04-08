@@ -132,6 +132,17 @@ dist
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
+
+# === n8n Specific (Добавь это ниже) ===
+.n8n/
+config
+credentials
+*.json.gz
+secrets.txt
+
+# Если в твоем списке выше нет этих строк, убедись, что они есть:
+.env
+.env.*
 !.yarn/versions
 
 # Vite logs files
