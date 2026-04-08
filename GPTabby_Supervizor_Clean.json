@@ -1,0 +1,1207 @@
+{
+  "name": "GPTabby_3.0_Supervisor",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        912
+      ],
+      "webhookId": "your-webhook-id-here",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-4-turbo"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "",
+      "name": "Supervisor Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        1136
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "id": "",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        1136
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "search_elasticsearch",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": ""
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "search_elasticsearch"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "needs_clarification",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": ""
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "needs_clarification"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "general_consultation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": ""
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "general_consultation"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a Tier 3 Technical Support supervisor. Analyze the user's message and determine the appropriate action by classifying their intent and extracting relevant technical details. Your output must be structured JSON with two keys: intent (one of: needs_clarification, search_elasticsearch, general_consultation) and extracted_data (technical details from the message)."
+        }
+      },
+      "id": "",
+      "name": "Supervisor Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        544,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"intent\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"enum\": [\"needs_clarification\", \"search_elasticsearch\", \"search_lightrag\", \"general_consultation\"]\n\t\t},\n\t\t\"extracted_data\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Technical details extracted from the input\"\n\t\t}\n\t}\n}"
+      },
+      "id": "",
+      "name": "JSON Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        736,
+        1136
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output.extracted_data }}",
+        "options": {
+          "systemMessage": "You are a Knowledge Base agent for Tier 3 Technical Support. Use the search_lightrag Tool to query the knowledge base for relevant information. Return comprehensive answers based on the retrieved knowledge."
+        }
+      },
+      "id": "",
+      "name": "Knowledge Base Agent (LightRAG)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1824,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "",
+      "name": "LightRAG Agent Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1776,
+        1056
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1712,
+        208
+      ],
+      "id": "",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to find relevant Elasticsearch tags, microservices, and technical context for a specific problem. Always pass the 'problem_description' as the search query to this tool.",
+        "method": "POST",
+        "url": "https://your-elasticsearch-url.com/", #Replace with actual URL of the Elasticsearch or LightRAG API endpoint
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $fromAI('query') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1968,
+        208
+      ],
+      "id": "",
+      "name": "search_knowledge_base"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "options": {
+          "systemMessage": "You are a strictly logical Data Retriever Agent for a Tier 3 incident response system.\nYou will receive a JSON object containing 'client_id', 'start_time', 'end_time', and 'problem_description'.\n\nYour workflow:\n1. Read the input JSON.\n2. Extract the value of 'problem_description'.\n3. MUST USE the 'search_knowledge_base' tool to search for tags and services related to this problem description.\n4. Receive the results from the tool.\n5. Output the final result strictly as a raw JSON object. Do NOT wrap it in markdown (no ```json). Do NOT add conversational text.\n\nRequired Final Output JSON Schema:\n{\n  \"client_id\": \"original client_id\",\n  \"start_time\": \"original start_time\",\n  \"end_time\": \"original end_time\",\n  \"problem_description\": \"original problem_description\",\n  \"retrieved_context\": \"Put the exact output received from the search_knowledge_base tool here\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1840,
+        -16
+      ],
+      "id": "",
+      "name": "Logical Data Retriever"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "options": {
+          "systemMessage": "You are an expert Data Retrieval Agent for a Tier 3 incident response system.\n\nYour strict workflow:\n1. Analyze the input data. Extract the specific service tag (e.g., 'SPOOLER', 'Network') from the 'retrieved_context'. \n2. Extract the organization ID (client_id) from the user input.\n3. You MUST EXECUTE the log search tool. Pass the extracted organization ID as 'org_id' and the technical tag as 'service_tag'. Do NOT just print the tool call as text.\n4. Wait for the tool to return the raw logs from the database.\n5. ONLY AFTER you receive the logs, output your final result as a raw JSON object. Do not use markdown blocks (```json ... ```).\n\nRequired Final Output JSON Schema:\n{\n  \"client_id\": \"the original client_id\",\n  \"identified_service_tag\": \"the tag you searched for\",\n  \"database_logs\": \"Insert the exact raw output received from the tool here\"\n}"
+        }
+      },
+      "id": "",
+      "name": "Data Retriever Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2336,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-4"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "",
+      "name": "Data Retriever Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2256,
+        320
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-4"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "",
+      "name": "Log Analyzer Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2848,
+        320
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to fetch raw logs from Elasticsearch. You MUST pass a strictly valid Elasticsearch DSL query (in JSON format) into the 'dsl_query' parameter. Build this DSL query using the 'client_id', time range, and specific services.Do NOT pass plain text.",
+        "method": "POST",
+        "url": "https://<YOUR_ELASTICSEARCH_ENDPOINT>/<INDEX_NAME>/_search", #Replace with actual Elasticsearch endpoint and index name
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n-AI-Support-Agent"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $fromAI('dsl_query', 'Complete Elasticsearch DSL query object with query, size, and sort fields', 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        2432,
+        480
+      ],
+      "id": "",
+      "name": "search_elasticsearch_logs",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Original Problem: \nRaw Logs to Analyze:\n{{ $json.output }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert Tier 3 Incident Response AI.  Your task is to analyze raw Elasticsearch logs and provide a clear, concise, and actionable summary.  Your response must be in plain text (ready to be sent in a messenger) and include: 1. 🛑 Root Cause: Briefly explain what the logs show (e.g., which specific device or service is failing). 2. 🔍 Evidence: Mention specific details from the log (IP addresses, specific statuses, timestamps). 3. 🛠️ Recommended Action: What should the support agent do to fix it?  Keep it professional, short, and formatted with emojis for readability. Do NOT output JSON."
+            }
+          ]
+        }
+      },
+      "id": "",
+      "name": "Incident Response AI",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        2736,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "",
+              "leftValue": "={{ $json.output.client_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "",
+              "leftValue": "={{ $json.output.timestamp }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "",
+              "leftValue": "={{ $json.output.problem_description }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1488,
+        240
+      ],
+      "id": "",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1840,
+        208
+      ],
+      "id": "",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1904,
+        1056
+      ],
+      "id": "",
+      "name": "Postgres Chat Memory2",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2400,
+        320
+      ],
+      "id": "",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.output.extracted_data }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "client_id",
+              "description": "Organization number for correct parsing in next few steps MUST to be",
+              "required": true
+            },
+            {
+              "name": "timestamp",
+              "type": "date",
+              "description": "start_time + end_time",
+              "required": true
+            },
+            {
+              "name": "problem_description",
+              "description": "Must be for finding relevant tags in LightRAG",
+              "required": true
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"client_id\": {\n      \"type\": \"string\",\n      \"description\": \"The unique identifier of the client, if mentioned in the text.\"\n    },\n    \"timestamp\": {\n      \"type\": \"string\",\n      \"description\": \"The time or date when the error occurred (in ISO format or exactly as stated by the user).\"\n    },\n    \"intent\": {\n      \"type\": \"string\",\n      \"enum\": [\"search_logs\", \"knowledge_base\", \"general_question\"],\n      \"description\": \"The category that best fits the user's request.\"\n    },\n    \"problem_description\": {\n      \"type\": \"string\",\n      \"description\": \"A brief summary of the technical issue.\"\n    }\n  },\n  \"required\": [\"intent\", \"problem_description\"]\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        240
+      ],
+      "id": "",
+      "name": "Information Extractor",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1152,
+        464
+      ],
+      "id": "",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "id": "",
+      "name": "Send Response1",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1728,
+        1312
+      ],
+      "webhookId": "your-webhook-id-here",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "You should send Org_ID, Timestamp, problem description.",
+        "additionalFields": {}
+      },
+      "id": "",
+      "name": "Send Response2",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1824,
+        432
+      ],
+      "webhookId": "your-webhook-id-here",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "",
+      "name": "LightRAG Agent Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        1376
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1296,
+        1376
+      ],
+      "id": "",
+      "name": "Postgres Chat Memory3",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output.extracted_data }}",
+        "options": {
+          "systemMessage": "You are a Tier 3 Technical Support assistant. Based on the context, either ask a clarifying question to better understand the user's issue, or provide a helpful consultation response. Be professional, clear, and concise."
+        }
+      },
+      "id": "",
+      "name": "Classification agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1232,
+        1152
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the technical knowledge base for instructions, step-by-step guides, documentation, or general explanations of concepts and processes. Whenever the user asks \"how to do X\", requests a manual, or needs a description of a system, you MUST use this tool. Pass the core topic or the user's specific question as the search query.",
+        "method": "POST",
+        "url": "https://<YOUR_KNOWLEDGE_BASE_URL>/ask", #Replace with actual URL of the knowledge base API endpoint
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"session_id\": \"n8n_agent_search\",\n  \"question\": \"={{ $fromAI('query') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1424,
+        1376
+      ],
+      "id": "",
+      "name": "What we have"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the technical knowledge base for instructions, step-by-step guides, documentation, or general explanations of concepts and processes. Whenever the user asks \"how to do X\", requests a manual, or needs a description of a system, you MUST use this tool. Pass the core topic or the user's specific question as the search query.",
+        "method": "POST",
+        "url": "https://<YOUR_KNOWLEDGE_BASE_URL>/ask", #Replace with actual URL of the knowledge base API endpoint
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $fromAI('query') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        2032,
+        1056
+      ],
+      "id": "",
+      "name": "search_lightrag"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "id": "",
+      "name": "Send Response3",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3456,
+        720
+      ],
+      "webhookId": "your-webhook-id-here",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Original Problem: \nRaw Logs to Analyze:\n{{ $json.output }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert Tier 3 Technical Support AI. Your task is to analyze retrieved Knowledge Base documentation and provide a clear, concise, and user-friendly explanation for a client in a messenger app.   Your response must be in plain text (formatted with Markdown and emojis for readability) and strictly follow this structure:  1. 💡 Brief Summary: A clear, 1-2 sentence definition or direct answer to the user's question. 2. ⚙️ Key Details: Use short bullet points to highlight the most important functions, steps, or features. Keep descriptions crisp and avoid walls of text. 3. 📚 References: List the source document titles provided in the context (without URLs, just names).  Keep the tone professional, helpful, and highly readable for mobile devices. Do NOT output JSON. Do NOT hallucinate information outside the provided context. If the context does not contain the answer, politely state that the information is unavailable."
+            }
+          ]
+        }
+      },
+      "id": "",
+      "name": "Incident Response AI1",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        2304,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-4"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "",
+      "name": "Log Analyzer Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2320,
+        1152
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Searches the PostgreSQL database for recent server and device logs. Use this tool to retrieve raw technical logs, errors, and warnings for a specific organization. Requires two parameters: 'org_id' (the organization identifier) and 'service_tag' (the technical tag identified from the context, such as SPOOLER, Network, or MDM).",
+        "operation": "executeQuery",
+        "query": "SELECT timestamp, level, device_ip, message \nFROM ai_support_logs \nWHERE org_id = '{{ $json.org_id }}' \n  AND service_tag = '{{ $json.service_tag }}' \nORDER BY timestamp DESC \nLIMIT 10;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        2544,
+        304
+      ],
+      "id": "",
+      "name": "Execute a SQL query in Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "1) \"Hi! Could you check the logs for organization org_998877 (org_id_12345)? The kitchen stopped printing tickets, it seems the printer is not responding. What's the issue there?\"\n\n2)\"Hey, the kitchen iPad at Global Burger (org_998877) seems to have dropped off the internet. Orders aren't syncing. Can you check the network logs please?\"\n\n3)\"Urgent issue. At org_998877, the bar tablet closed the POS app and shows some access error. Can you look at the MDM logs and tell me what happened?\"\n\n4)\"Can you explain in simple terms what a Spooler is and why it's needed in a restaurant setup?\"\n",
+        "height": 320,
+        "width": 448
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3248,
+        -320
+      ],
+      "typeVersion": 1,
+      "id": "",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Supervisor Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supervisor Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Supervisor Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Supervisor Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Supervisor Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supervisor Agent": {
+      "main": [
+        [
+          {
+            "node": "Route by Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LightRAG Agent Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Knowledge Base Agent (LightRAG)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classification agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Knowledge Base Agent (LightRAG)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knowledge Base Agent (LightRAG)": {
+      "main": [
+        [
+          {
+            "node": "Incident Response AI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Logical Data Retriever",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_knowledge_base": {
+      "ai_tool": [
+        [
+          {
+            "node": "Logical Data Retriever",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logical Data Retriever": {
+      "main": [
+        [
+          {
+            "node": "Data Retriever Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Retriever Agent": {
+      "main": [
+        [
+          {
+            "node": "Incident Response AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Retriever Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Data Retriever Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Analyzer Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Incident Response AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_elasticsearch_logs": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Incident Response AI": {
+      "main": [
+        [
+          {
+            "node": "Send Response3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Logical Data Retriever",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Logical Data Retriever",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Knowledge Base Agent (LightRAG)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Data Retriever Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LightRAG Agent Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classification agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Classification agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classification agent": {
+      "main": [
+        [
+          {
+            "node": "Send Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "What we have": {
+      "ai_tool": [
+        [
+          {
+            "node": "Classification agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_lightrag": {
+      "ai_tool": [
+        [
+          {
+            "node": "Knowledge Base Agent (LightRAG)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incident Response AI1": {
+      "main": [
+        [
+          {
+            "node": "Send Response3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Analyzer Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Incident Response AI1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query in Postgres": {
+      "ai_tool": [
+        [
+          {
+            "node": "Data Retriever Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  }
+}
