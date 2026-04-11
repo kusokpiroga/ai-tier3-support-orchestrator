@@ -2,6 +2,14 @@
 Production-grade AI Incident Response Orchestrator. Automates Tier 3 diagnostics using multi-agent workflows, dual-RAG architecture (LightRAG + ELK), and complex DSL query generation. Designed to reduce MTTR in high-scale service environments by bridging the gap between raw logs and actionable insights.
 <img width="1023" height="505" alt="image" src="https://github.com/user-attachments/assets/798a1db3-29f5-4296-aab6-68ee4bc303e1" />
 ![ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/1cc4feb5-4dad-48e1-8adc-978a7323c974)
+![ezgif com-video-to-gif-converter (7)](https://github.com/user-attachments/assets/25b21df9-db78-46da-a08c-c602aff2de24)
+![ezgif com-video-to-gif-converter (6)](https://github.com/user-attachments/assets/1940f64b-f2f5-4aae-a258-40db5ebdd400)
+![ezgif com-video-to-gif-converter (5)](https://github.com/user-attachments/assets/871e7abd-ed1a-4819-8c47-242f954e1db6)
+![ezgif com-video-to-gif-converter (4)](https://github.com/user-attachments/assets/54b36d28-5089-4fec-9090-78170cd09cd1)
+![ezgif com-video-to-gif-converter (3)](https://github.com/user-attachments/assets/e763198a-f653-4fad-b37c-56a84b002b1f)
+![ezgif com-video-to-gif-converter (2)](https://github.com/user-attachments/assets/3ca8eaac-ad22-40be-a9dd-f66c72646085)
+![ezgif com-video-to-gif-converter (1)](https://github.com/user-attachments/assets/2e1f7ed7-9f6f-4adb-84c8-16970c60ab89)
+
 
 <p align="center">
   <img src="https://img.shields.io/badge/n8n-Workflow_Automation-FF6600?style=for-the-badge&logo=n8n&logoColor=white" alt="n8n" />
