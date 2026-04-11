@@ -62,9 +62,9 @@ The agent parses the retrieved logs, identifies the missing parameter or system 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/383c0a03-af26-4ed0-866a-a6b23c179c33" alt="Log parsing and output 1" width="200">
   <br><br>
-  <img src="https://github.com/user-attachments/assets/3387fe95-3e0c-4c6f-bcaa-8f92257a4d8e" alt="Log parsing and output 2" width="200">
+  <img src="https://github.com/user-attachments/assets/caf4adbb-60a6-4092-8283-5ecd68121140" alt="Log parsing and output 2" width="200">
   <br><br>
-  <img src="https://github.com/user-attachments/assets/caf4adbb-60a6-4092-8283-5ecd68121140" alt="Log parsing and output 3" width="200">
+  <img src="https://github.com/user-attachments/assets/3387fe95-3e0c-4c6f-bcaa-8f92257a4d8e" alt="Log parsing and output 3" width="200">
 </p>
 ## 💻 Tech Stack
 
