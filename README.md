@@ -57,40 +57,39 @@ Instead of just "saving time," **this project is designed to save headcount.**
 
 ## 🛠 How It Works
 
-Here is a breakdown of the core nodes and logical routing within the orchestrator:
+Here is a breakdown of the core architecture and logical routing:
 
-### 1. The Supervisor Agent (Decision Making)
-The agent acts as the brain, receiving the initial panic query (e.g., "I can't close the register!") and determining the appropriate troubleshooting path.
-<p align="center">
-  <img src="link_to_your_supervisor_gif.gif" alt="Supervisor Agent Decision Tree" width="700">
-  <br>
-  <i>()</i>
-</p>
+### 1. The Supervisor Agent (Decision Making via n8n)
+The n8n orchestrator acts as the central nervous system. It receives the initial panic query from the user, processes the state machine logic, and determines which specialized tool or microservice needs to be called to resolve the issue.
 
-### 2. Direct HTTP-to-Database Routing
-Instead of spinning up external services, the workflow uses optimized HTTP nodes to fetch necessary operational data, keeping the architecture lean and failure points low.
-<p align="center">
-  <img src="link_to_your_http_sql_gif.gif" alt="HTTP Request Database Node" width="700">
-  <br>
-  <i>()</i>
-</p>
+### 2. Custom AI Microservice (FastAPI + LightRAG)
+Instead of overloading n8n with heavy data processing, HTTP Request nodes securely route complex RAG queries to a custom-built Python microservice. 
+* **Dual RAG Instances:** The FastAPI backend runs two parallel `LightRAG` instances—one strictly for mapping service tags (routing) and one for deep Knowledge Base retrieval.
+* **Seamless API:** n8n communicates with this microservice via optimized `/get_tags` and `/ask_kb` REST endpoints.
 
-### 3. Log Analysis & Resolution
-The agent parses the retrieved logs, identifies the missing parameter or system error, and provides the exact "dummy-proof" steps to fix it.
-<p align="center">
-  <img src="link_to_your_log_analysis_gif.gif" alt="Log parsing and output" width="700">
-  <br>
-  <i>()</i>
-</p>
+### 3. Data Ingestion & Resolution
+The microservice autonomously handles data ingestion (parsing PDFs via `PyMuPDF` and text files), builds the relationship graphs, and feeds the precise, context-rich answers back to n8n to guide the L1/L3 troubleshooting process.
 
 ---
 
 ## 💻 Tech Stack
 
-* **Automation Engine:** n8n (State Machine, HTTP Requests, Webhooks)
-* **AI/LLM:** OpenAI Models (Agentic RAG)
-* **Database:** PostgreSQL
-* **Scripting:** Python (for custom data transformation logic within nodes)
+**Orchestration & Workflow:**
+* **n8n** (State Machine logic, Webhooks, HTTP Requests)
+
+**Custom Backend & API:**
+* **Python 3**
+* **FastAPI + Uvicorn** (High-performance asynchronous REST API)
+* **ngrok** (Secure tunneling for microservice exposure)
+
+**AI & Data Engine:**
+* **LightRAG** (Graph-based Retrieval-Augmented Generation)
+* **OpenAI API** (`gpt-4o-mini` for inference, `openai_embed` for vectorization)
+* **PyMuPDF / fitz** (Automated document ingestion and parsing)
+
+**Storage:**
+* **Google Drive / Local Storage** (Graph mappings and KB data storage)
+* **PostgreSQL** (Target database for logging and operational data)
 
 ## 🚀 Getting Started
 
