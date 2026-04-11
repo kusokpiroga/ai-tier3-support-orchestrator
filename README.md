@@ -91,14 +91,3 @@ The microservice autonomously handles data ingestion (parsing PDFs via `PyMuPDF`
 * **Google Drive / Local Storage** (Graph mappings and KB data storage)
 * **PostgreSQL** (Target database for logging and operational data)
 
-## 🚀 Getting Started
-
-*(Add brief instructions here on how to import the `.json` workflow file into their own n8n instance and set up credentials).*
-
-1. Clone this repository.
-2. Import the `workflow.json` into your n8n workspace.
-3. Configure your OpenAI API keys and PostgreSQL HTTP credentials.
-4. Activate the webhook and test your first late-night support scenario!
-
-## 🤝 Let's Connect
-
