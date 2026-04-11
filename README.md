@@ -1,24 +1,6 @@
 # ai-tier3-support-orchestrator
 Production-grade AI Incident Response Orchestrator. Automates Tier 3 diagnostics using multi-agent workflows, dual-RAG architecture (LightRAG + ELK), and complex DSL query generation. Designed to reduce MTTR in high-scale service environments by bridging the gap between raw logs and actionable insights.
 <img width="1023" height="505" alt="image" src="https://github.com/user-attachments/assets/798a1db3-29f5-4296-aab6-68ee4bc303e1" />
-![ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/1cc4feb5-4dad-48e1-8adc-978a7323c974)
-1
-![ezgif com-video-to-gif-converter (3)](https://github.com/user-attachments/assets/e763198a-f653-4fad-b37c-56a84b002b1f)
-2
-![ezgif com-video-to-gif-converter (4)](https://github.com/user-attachments/assets/54b36d28-5089-4fec-9090-78170cd09cd1)
-3
-![ezgif com-video-to-gif-converter (2)](https://github.com/user-attachments/assets/3ca8eaac-ad22-40be-a9dd-f66c72646085)
-4
-![ezgif com-video-to-gif-converter (6)](https://github.com/user-attachments/assets/1940f64b-f2f5-4aae-a258-40db5ebdd400)
-5
-![ezgif com-video-to-gif-converter (5)](https://github.com/user-attachments/assets/871e7abd-ed1a-4819-8c47-242f954e1db6)
-6
-![ezgif com-video-to-gif-converter (7)](https://github.com/user-attachments/assets/25b21df9-db78-46da-a08c-c602aff2de24)
-7
-![ezgif com-video-to-gif-converter (3)](https://github.com/user-attachments/assets/e763198a-f653-4fad-b37c-56a84b002b1f)
-
-
-
 
 <p align="center">
   <img src="https://img.shields.io/badge/n8n-Workflow_Automation-FF6600?style=for-the-badge&logo=n8n&logoColor=white" alt="n8n" />
@@ -61,19 +43,29 @@ Instead of just "saving time," **this project is designed to save headcount.**
 
 Here is a breakdown of the core architecture and logical routing:
 
-### 1. The Supervisor Agent (Decision Making via n8n)
-The n8n orchestrator acts as the central nervous system. It receives the initial panic query from the user, processes the state machine logic, and determines which specialized tool or microservice needs to be called to resolve the issue.
+### 1. The Supervisor Agent (Decision Making)
+The agent acts as the brain, receiving the initial panic query (e.g., "I can't close the register!") and determining the appropriate troubleshooting path.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e0c24536-a3c0-4488-ac12-1c099f8c023c" alt="Supervisor Agent Decision Tree" width="700">
+</p>
 
-### 2. Custom AI Microservice (FastAPI + LightRAG)
-Instead of overloading n8n with heavy data processing, HTTP Request nodes securely route complex RAG queries to a custom-built Python microservice. 
-* **Dual RAG Instances:** The FastAPI backend runs two parallel `LightRAG` instances—one strictly for mapping service tags (routing) and one for deep Knowledge Base retrieval.
-* **Seamless API:** n8n communicates with this microservice via optimized `/get_tags` and `/ask_kb` REST endpoints.
+### 2. Direct HTTP-to-Database Routing
+Instead of spinning up external services, the workflow uses optimized HTTP nodes to fetch necessary operational data, keeping the architecture lean and failure points low.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a36c90df-4d23-4661-8fb6-0c6ae833bed3" alt="HTTP Request Database Node" width="700">
+  <br><br>
+  <img src="https://github.com/user-attachments/assets/ee4d798b-129a-4bd0-ab6f-3082378eb49b" alt="HTTP Request Database Node Part 2" width="700">
+</p>
 
-### 3. Data Ingestion & Resolution
-The microservice autonomously handles data ingestion (parsing PDFs via `PyMuPDF` and text files), builds the relationship graphs, and feeds the precise, context-rich answers back to n8n to guide the L1/L3 troubleshooting process.
-
----
-
+### 3. Log Analysis & Resolution
+The agent parses the retrieved logs, identifies the missing parameter or system error, and provides the exact "dummy-proof" steps to fix it.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/383c0a03-af26-4ed0-866a-a6b23c179c33" alt="Log parsing and output 1" width="700">
+  <br><br>
+  <img src="https://github.com/user-attachments/assets/3387fe95-3e0c-4c6f-bcaa-8f92257a4d8e" alt="Log parsing and output 2" width="700">
+  <br><br>
+  <img src="https://github.com/user-attachments/assets/caf4adbb-60a6-4092-8283-5ecd68121140" alt="Log parsing and output 3" width="700">
+</p>
 ## 💻 Tech Stack
 
 **Orchestration & Workflow:**
