@@ -15,7 +15,7 @@ Production-grade AI Incident Response Orchestrator. Automates Tier 3 diagnostics
 6
 ![ezgif com-video-to-gif-converter (2)](https://github.com/user-attachments/assets/3ca8eaac-ad22-40be-a9dd-f66c72646085)
 7
-![ezgif com-video-to-gif-converter (1)](https://github.com/user-attachments/assets/2e1f7ed7-9f6f-4adb-84c8-16970c60ab89)
+
 
 
 <p align="center">
