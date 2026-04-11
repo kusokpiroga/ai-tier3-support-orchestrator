@@ -49,7 +49,7 @@ The agent acts as the brain, receiving the initial panic query (e.g., "I can't c
 <p align="center">
   <img src="link_to_your_supervisor_gif.gif" alt="Supervisor Agent Decision Tree" width="700">
   <br>
-  <i>(Insert GIF here: Focus on the AI Node and its routing branches)</i>
+  <i>()</i>
 </p>
 
 ### 2. Direct HTTP-to-Database Routing
@@ -57,7 +57,7 @@ Instead of spinning up external services, the workflow uses optimized HTTP nodes
 <p align="center">
   <img src="link_to_your_http_sql_gif.gif" alt="HTTP Request Database Node" width="700">
   <br>
-  <i>(Insert GIF here: Focus on the HTTP Request node connecting to Postgres)</i>
+  <i>()</i>
 </p>
 
 ### 3. Log Analysis & Resolution
@@ -65,7 +65,7 @@ The agent parses the retrieved logs, identifies the missing parameter or system 
 <p align="center">
   <img src="link_to_your_log_analysis_gif.gif" alt="Log parsing and output" width="700">
   <br>
-  <i>(Insert GIF here: Focus on data transformation or final output node)</i>
+  <i>()</i>
 </p>
 
 ---
@@ -88,7 +88,3 @@ The agent parses the retrieved logs, identifies the missing parameter or system 
 
 ## 🤝 Let's Connect
 
-I am currently open to remote **AI Automation Engineer / Backend Developer** roles (Minimum target: $1500+). 
-If you are looking for an engineer who focuses on business value, clean architecture, and total process automation, feel free to reach out.
-
-[LinkedIn](your_linkedin_link) | [Email](mailto:your_email@example.com)
