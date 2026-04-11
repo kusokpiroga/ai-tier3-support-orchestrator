@@ -53,7 +53,6 @@ The agent acts as the brain, receiving the initial panic query (e.g., "I can't c
 Instead of spinning up external services, the workflow uses optimized HTTP nodes to fetch necessary operational data, keeping the architecture lean and failure points low.
 <p align="center">
   <img src="https://github.com/user-attachments/assets/a36c90df-4d23-4661-8fb6-0c6ae833bed3" alt="HTTP Request Database Node" width="200">
-  <br><br>
   <img src="https://github.com/user-attachments/assets/ee4d798b-129a-4bd0-ab6f-3082378eb49b" alt="HTTP Request Database Node Part 2" width="200">
 </p>
 
@@ -61,9 +60,7 @@ Instead of spinning up external services, the workflow uses optimized HTTP nodes
 The agent parses the retrieved logs, identifies the missing parameter or system error, and provides the exact "dummy-proof" steps to fix it.
 <p align="center">
   <img src="https://github.com/user-attachments/assets/383c0a03-af26-4ed0-866a-a6b23c179c33" alt="Log parsing and output 1" width="200">
-  <br><br>
   <img src="https://github.com/user-attachments/assets/caf4adbb-60a6-4092-8283-5ecd68121140" alt="Log parsing and output 2" width="200">
-  <br><br>
   <img src="https://github.com/user-attachments/assets/3387fe95-3e0c-4c6f-bcaa-8f92257a4d8e" alt="Log parsing and output 3" width="200">
 </p>
 ## 💻 Tech Stack
