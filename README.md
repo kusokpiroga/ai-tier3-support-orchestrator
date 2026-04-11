@@ -14,11 +14,6 @@ Production-grade AI Incident Response Orchestrator. Automates Tier 3 diagnostics
   <b>Fair-cost AI support automation for SaaS hospitality. Replace expensive night shifts with an intelligent agent that solves L1/L3 issues 24/7.</b>
 </p>
 
-<p align="center">
-  <img src="link_to_your_main_hero_gif.gif" alt="AI Support Orchestrator Workflow Preview" width="800">
-  <br>
-  <i>(Replace with a general GIF showing the n8n execution flow)</i>
-</p>
 
 ## 📖 What is this?
 
